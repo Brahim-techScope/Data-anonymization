@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Add the include directory for Eigen
 include_directories(
-    C:/Users/brahi/eigen/eigen-3.4.0  # Eigen library path
+    C:/Users/brahi/eigen/eigen-3.4.0  # adapt this to your Eigen library path
     ${CMAKE_CURRENT_SOURCE_DIR}/Dataset    # Your Dataset headers
     ${CMAKE_CURRENT_SOURCE_DIR}/logistic_regression  # Logistic Regression headers
 )

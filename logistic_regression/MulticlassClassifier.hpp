@@ -20,6 +20,7 @@ private:
   Eigen::MatrixXd *m_beta;
   double learning_rate;
   long epochs;
+  string mode;
 
 public:
   /**
@@ -28,8 +29,9 @@ public:
     @param learning_rate the learning rate of the gradient descent
     @param epochs the number of epochs
     @param labels the labels of the classes
+    @param mode the mode of the multiclass classification
   */
-  MulticlassClassifier(Dataset *X, Dataset *y, double learning_rate, long epochs);
+  MulticlassClassifier(Dataset *X, Dataset *y, double learning_rate, long epochs, string mode = "one_vs_all");
 
   /*
     The destructor (frees m_beta).

@@ -69,7 +69,7 @@ int main() {
 
         // Create an instance of MulticlassClassifier and fit the model
         cout << "\nFitting the model..." << endl;
-        MulticlassClassifier classifier(&X_train, &y_train, lr, m_epochs);
+        MulticlassClassifier classifier(&X_train, &y_train, lr, m_epochs, "one_vs_one");
         cout << "Model fitted.\n" << endl;
 
         // metrics on the training set

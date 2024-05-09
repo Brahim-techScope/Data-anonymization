@@ -13,10 +13,11 @@
 
 using namespace std;
 
-MulticlassClassifier::MulticlassClassifier(Dataset* X, Dataset* y, double lr, long n_epoch ) : Regression(X, y) {
+MulticlassClassifier::MulticlassClassifier(Dataset* X, Dataset* y, double lr, long n_epoch, string md ) : Regression(X, y) {
 	m_beta = nullptr;
 	learning_rate = lr;
 	epochs = n_epoch;
+    mode = md;
     
     // Fit the model to the data and measure the time taken
     auto start = chrono::high_resolution_clock::now();
@@ -63,38 +64,69 @@ Eigen::VectorXd MulticlassClassifier::construct_y(int j) {
 }
 
 void MulticlassClassifier::set_coefficients() {
-    // Construct the matrix X and the time taken to fit the model
-    auto start = chrono::high_resolution_clock::now();
+    if (mode == "one_vs_all") {
+        Eigen::MatrixXd X_data = construct_matrix();
+        m_beta = new Eigen::MatrixXd(X_data.cols(), get_y()->get_dim());
+        
+        for (int i = 0; i < get_y()->get_dim(); i++) {
+            // Construct the vector y
+            Eigen::VectorXd y_labels = construct_y(i);
 
-    Eigen::MatrixXd X_data = construct_matrix();
+            // Fit the model to the data and measure the time taken
+            auto start2 = chrono::high_resolution_clock::now();
 
-    auto end = chrono::high_resolution_clock::now();
-    chrono::duration<double> elapsed = end - start;
-    cout << "Time taken to construct the matrix X: " << elapsed.count() << " s" << endl;
+            m_beta->col(i).setZero();
+            for (int j = 0; j < epochs; j++) {
+                m_beta->col(i) += learning_rate * gradient( X_data, y_labels, m_beta->col(i) );
+            }
 
-    m_beta = new Eigen::MatrixXd(X_data.cols(), get_y()->get_dim());
-    
-    for (int i = 0; i < get_y()->get_dim(); i++) {
-        // Construct the vector y and the time taken
-        auto start1 = chrono::high_resolution_clock::now();
-
-        Eigen::VectorXd y_labels = construct_y(i);
-
-        auto end1 = chrono::high_resolution_clock::now();
-        chrono::duration<double> elapsed1 = end1 - start1;
-        cout << "Time taken to construct the vector y(i): " << elapsed1.count() << " s" << endl;
-
-        // Fit the model to the data and measure the time taken
-        auto start2 = chrono::high_resolution_clock::now();
-
-        m_beta->col(i).setZero();
-        for (int j = 0; j < epochs; j++) {
-            m_beta->col(i) += learning_rate * gradient( X_data, y_labels, m_beta->col(i) );
+            auto end2 = chrono::high_resolution_clock::now();
+            chrono::duration<double> elapsed2 = end2 - start2;
+            cout << "Time taken to fit the model for label " << i << ": " << elapsed2.count() << " s" << endl;
         }
+    } else if (mode == "one_vs_one") {
+        Eigen::MatrixXd X_data = construct_matrix();
+        m_beta = new Eigen::MatrixXd(X_data.cols(), get_y()->get_dim() * (get_y()->get_dim() - 1) / 2);
+        
+        int k = 0;
+        for (int i = 0; i < get_y()->get_dim()-1; i++) {
+            for (int j = i + 1; j < get_y()->get_dim(); j++) {
+                // Compute the number of samples for which the labels are i or j
+                int num_samples = 0;
+                for (int l = 0; l < get_X()->get_nbr_samples(); l++) {
+                    if ( get_y()->get_instance(l)[i] == 1 || get_y()->get_instance(l)[j] == 1 ) {
+                        num_samples++;
+                    }
+                }
+                
+                // Construct the matrix X_d and the vector y_labels
+                Eigen::MatrixXd X_d(num_samples, X_data.cols());
+                Eigen::VectorXd y_labels(num_samples);
+                int m = 0;
+                for (int l = 0; l < get_X()->get_nbr_samples(); l++) {
+                    if ( get_y()->get_instance(l)[i] == 1 || get_y()->get_instance(l)[j] == 1 ) {
+                        X_d.row(m) = X_data.row(l);
+                        y_labels(m) = get_y()->get_instance(l)[i];
+                        m++;
+                    }
+                }
+                
+                // Fit the model to the data and measure the time taken
+                auto start2 = chrono::high_resolution_clock::now();
 
-        auto end2 = chrono::high_resolution_clock::now();
-        chrono::duration<double> elapsed2 = end2 - start2;
-        cout << "Time taken to fit the model for label " << i << ": " << elapsed2.count() << " s" << endl;
+                m_beta->col(k).setZero();
+                for (int l = 0; l < epochs; l++) {
+                    m_beta->col(k) += learning_rate * gradient( X_d, y_labels, m_beta->col(k) );
+                }
+
+                auto end2 = chrono::high_resolution_clock::now();
+                chrono::duration<double> elapsed2 = end2 - start2;
+                cout << "Time taken to fit the model for labels " << i << " and " << j << ": " << elapsed2.count() << " s" << endl;
+                k++;
+            }
+        }
+    } else {
+        cout << "Invalid mode." << endl;
     }
 }
 Eigen::VectorXd MulticlassClassifier::sigmoid(const Eigen::VectorXd& z) const {
@@ -113,12 +145,32 @@ Eigen::VectorXd MulticlassClassifier::gradient(const Eigen::MatrixXd &X, const E
     return grad;
 }
 
-Eigen::VectorXd MulticlassClassifier::estimate(const Eigen::VectorXd & x) const {
-    Eigen::VectorXd probas = Eigen::VectorXd(get_y()->get_dim());
-    for (int i = 0; i < get_y()->get_dim(); i++) {
-        probas(i) = sigmoid( (*m_beta).col(i)(0) + x.transpose() * m_beta->col(i).tail(m_beta->col(i).size() - 1) );
+Eigen::VectorXd MulticlassClassifier::estimate(const Eigen::VectorXd &x ) const {
+    if (mode == "one_vs_all") {
+        Eigen::VectorXd probas = Eigen::VectorXd(get_y()->get_dim());
+        for (int i = 0; i < get_y()->get_dim(); i++) {
+            probas(i) = sigmoid( (*m_beta).col(i)(0) + x.transpose() * m_beta->col(i).tail(m_beta->col(i).size() - 1) );
+        }
+        return probas;
+    } else if (mode == "one_vs_one") {
+        Eigen::VectorXd votes = Eigen::VectorXd::Zero(get_y()->get_dim());
+        int k = 0;
+        for (int i = 0; i < get_y()->get_dim()-1; i++) {
+            for (int j = i + 1; j < get_y()->get_dim(); j++) {
+                double proba = sigmoid( (*m_beta).col(k)(0) + x.transpose() * m_beta->col(k).tail(m_beta->col(k).size() - 1) );
+                if (proba >= 0.5) {
+                    votes(i) += 1.;
+                } else {
+                    votes(j) += 1.;
+                }
+                k++;
+            }
+        }
+        return votes;
+    } else {
+        cout << "Invalid mode." << endl;
+        return Eigen::VectorXd();
     }
-    return probas;
 }
 
 const Eigen::MatrixXd* MulticlassClassifier::get_coefficients() const {
@@ -130,44 +182,74 @@ const Eigen::MatrixXd* MulticlassClassifier::get_coefficients() const {
 }
 
 void MulticlassClassifier::confusion_matrix(const Dataset &X, const Dataset &y, Eigen::MatrixXd &con_matrix) const {
-    con_matrix = Eigen::MatrixXd::Zero(y.get_dim(), y.get_dim());
-    
-    for (int i = 0; i < X.get_nbr_samples(); i++) {
+    if (mode == "one_vs_all") {
+        con_matrix = Eigen::MatrixXd::Zero(y.get_dim(), y.get_dim());
         
-        Eigen::VectorXd votes = Eigen::VectorXd::Zero(get_y()->get_dim());
+        for (int i = 0; i < X.get_nbr_samples(); i++) {
+            
+            Eigen::VectorXd votes = Eigen::VectorXd::Zero(get_y()->get_dim());
 
-        const vector<double> instance = X.get_instance(i);
-        
-        Eigen::VectorXd vec(instance.size());
-        for (size_t i = 0; i < instance.size(); ++i) {
-            vec(i) = instance[i];
-        }
-        Eigen::VectorXd probas = estimate(vec);
+            const vector<double> instance = X.get_instance(i);
+            
+            Eigen::VectorXd vec(instance.size());
+            for (size_t i = 0; i < instance.size(); ++i) {
+                vec(i) = instance[i];
+            }
+            Eigen::VectorXd probas = estimate(vec);
 
-        for (int i = 0; i < probas.size(); i++) {
-            if ( probas(i) >= 0.5 ) {
-                votes(i) += 1;
-            } else {
-                for (int j = 0; j < probas.size(); j++) {
-                    if (j != i) {
-                        votes(j) += 1;
+            for (int i = 0; i < probas.size(); i++) {
+                if ( probas(i) >= 0.5 ) {
+                    votes(i) += 1;
+                } else {
+                    for (int j = 0; j < probas.size(); j++) {
+                        if (j != i) {
+                            votes(j) += 1;
+                        }
                     }
                 }
             }
-        }
-        
-        int prediction = 0;
-        for (int i = 1; i < votes.size(); i++) {
-            if (votes(i) > votes(prediction)) {
-                prediction = i;
+            
+            int prediction = 0;
+            for (int i = 1; i < votes.size(); i++) {
+                if (votes(i) > votes(prediction)) {
+                    prediction = i;
+                }
             }
-        }
 
-        for (int k = 0; k < y.get_dim(); k++) {
-            if ( y.get_instance(i)[k] == 1 ) {
-                con_matrix(k, prediction) += 1;
+            for (int k = 0; k < y.get_dim(); k++) {
+                if ( y.get_instance(i)[k] == 1 ) {
+                    con_matrix(k, prediction) += 1;
+                }
             }
         }
+    } else if (mode == "one_vs_one") {
+        con_matrix = Eigen::MatrixXd::Zero(y.get_dim(), y.get_dim());
+        
+        for (int i = 0; i < X.get_nbr_samples(); i++) {
+            
+            const vector<double> instance = X.get_instance(i);
+            
+            Eigen::VectorXd vec(instance.size());
+            for (size_t i = 0; i < instance.size(); ++i) {
+                vec(i) = instance[i];
+            }
+            Eigen::VectorXd votes = estimate(vec);
+
+            int prediction = 0;
+            for (int i = 1; i < votes.size(); i++) {
+                if (votes(i) > votes(prediction)) {
+                    prediction = i;
+                }
+            }
+
+            for (int k = 0; k < y.get_dim(); k++) {
+                if ( y.get_instance(i)[k] == 1 ) {
+                    con_matrix(k, prediction) += 1;
+                }
+            }
+        }
+    } else {
+        cout << "Invalid mode." << endl;
     }
 }
 
