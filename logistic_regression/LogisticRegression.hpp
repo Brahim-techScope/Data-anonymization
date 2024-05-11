@@ -76,6 +76,8 @@ public:
   */
   void confusion_matrix(const Dataset &X, const Dataset &y, Eigen::MatrixXd &con_matrix ) const;
 
+  void show_confusion_matrix(const Dataset &X, const Dataset &y) const;
+
   /**
     The accuracy method calculates the accuracy of the model on a given dataset.
     @param X the matrix of the features.
