@@ -62,91 +62,81 @@ int main() {
     } 
     else if (process == "multiclass")
     {
-        // Encode the labels
-        vector<string> labels = {"O", "PER", "LOC", "MISC"};;
+        string choice;
+        cout << "Enter 'one_vs_all' for one vs all or 'one_vs_one' for one vs one: ";
+        cin >> choice;
 
-        // Load the dataset
-        Dataset X_train("data/representation.eng.train.csv");
-        Dataset y_train("data/true_labels.eng.train.csv", false, true);
-        
-        // Parameters for logistic regression for multiclass classification
-        double lr = 0.001;
-        long m_epochs = 500;
+        {
+            // Parameters for logistic regression for multiclass classification
+            double lr = 0.001;
+            long m_epochs = 500;
 
-        // Create an instance of MulticlassClassifier and fit the model
-        cout << "\nFitting the model..." << endl;
-        MulticlassClassifier classifier(&X_train, &y_train, lr, m_epochs, "one_vs_one");
-        cout << "Model fitted-----------------.ONEVONE-----------------------\n" << endl;
+            // Load the dataset
+            Dataset X_train1("data/representation.eng.train.csv");
+            Dataset y_train1("data/true_labels.eng.train.csv", false, true);
+            
 
-        // metrics on the training set
-        classifier.show_confusion_matrix(X_train, y_train);
-        cout << "Accuracy on training set: " << classifier.accuracy(X_train, y_train) << endl;
-        cout << "Precision on training set: " << classifier.precision(X_train, y_train) << endl;
-        cout << "Recall on training set: " << classifier.recall(X_train, y_train) << endl;
-        cout << "F1 score on training set: " << classifier.f1_score(X_train, y_train) << endl;
+            // Create an instance of MulticlassClassifier and fit the model
+            cout << "\nFitting the model..." << endl;
+            MulticlassClassifier classifier(&X_train1, &y_train1, lr, m_epochs, choice);
+            cout << "Model fitted using " << choice << " Strategy\n" << endl;
 
-        // metrics on the test set a
-        cout << "\nEvaluating the model on the test set------------- BTC--------- a..." << endl;
-        Dataset X_test_a("data/representation.e.conll.csv");
-        Dataset y_test_a("data/true_labels.e.conll.csv", false, true);
+            // metrics on the training set
+            classifier.show_confusion_matrix(X_train1, y_train1);
+            cout << "Accuracy on training set: " << classifier.accuracy(X_train1, y_train1) << endl;
+            cout << "Precision on training set: " << classifier.precision(X_train1, y_train1) << endl;
+            cout << "Recall on training set: " << classifier.recall(X_train1, y_train1) << endl;
+            cout << "F1 score on training set: " << classifier.f1_score(X_train1, y_train1) << endl;
 
-        classifier.show_confusion_matrix(X_test_a, y_test_a);
-        cout << "Accuracy on test set a: " << classifier.accuracy(X_test_a, y_test_a) << endl;
-        cout << "Precision on test set a: " << classifier.precision(X_test_a, y_test_a) << endl;
-        cout << "Recall on test set a: " << classifier.recall(X_test_a, y_test_a) << endl;
-        cout << "F1 score on test set a: " << classifier.f1_score(X_test_a, y_test_a) << endl;
+            // metrics on the test set a
+            cout << "\nEvaluating the model on the test set a" << endl;
+            Dataset X_test_a("data/representation.eng.testa.csv");
+            Dataset y_test_a("data/true_labels.eng.testa.csv", false, true);
 
-        // metrics on the test set a
-        cout << "\nEvaluating the model on the test set -----------WIKIGOLD-------- a..." << endl;
-        Dataset X_test_b("data/representation.wikigold.conll.txt.csv");
-        Dataset y_test_b("data/true_labels.wikigold.conll.txt.csv", false, true);
+            classifier.show_confusion_matrix(X_test_a, y_test_a);
+            cout << "Accuracy on test set a: " << classifier.accuracy(X_test_a, y_test_a) << endl;
+            cout << "Precision on test set a: " << classifier.precision(X_test_a, y_test_a) << endl;
+            cout << "Recall on test set a: " << classifier.recall(X_test_a, y_test_a) << endl;
+            cout << "F1 score on test set a: " << classifier.f1_score(X_test_a, y_test_a) << endl;
 
-        classifier.show_confusion_matrix(X_test_b, y_test_b);
-        cout << "Accuracy on test set a: " << classifier.accuracy(X_test_b, y_test_b) << endl;
-        cout << "Precision on test set a: " << classifier.precision(X_test_b, y_test_b) << endl;
-        cout << "Recall on test set a: " << classifier.recall(X_test_b, y_test_b) << endl;
-        cout << "F1 score on test set a: " << classifier.f1_score(X_test_b, y_test_b) << endl;
+            // metrics on the test set b
+            cout << "\nEvaluating the model on the test set b " << endl;
+            Dataset X_test_b("data/representation.eng.testb.csv");
+            Dataset y_test_b("data/true_labels.eng.testb.csv", false, true);
 
-        cout << "-----------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~$$$$$$$$$$$$$$$$$$$$$$$$"<<endl;
+            classifier.show_confusion_matrix(X_test_b, y_test_b);
+            cout << "Accuracy on test set a: " << classifier.accuracy(X_test_b, y_test_b) << endl;
+            cout << "Precision on test set a: " << classifier.precision(X_test_b, y_test_b) << endl;
+            cout << "Recall on test set a: " << classifier.recall(X_test_b, y_test_b) << endl;
+            cout << "F1 score on test set a: " << classifier.f1_score(X_test_b, y_test_b) << endl;
 
-        // Load the dataset
-        Dataset X_train2("data/representation.eng.train.csv");
-        Dataset y_train2("data/true_labels.eng.train.csv", false, true);
-        
 
-        // Create an instance of MulticlassClassifier and fit the model
-        cout << "\nFitting the model..." << endl;
-        MulticlassClassifier classifier2(&X_train2, &y_train2, lr, m_epochs, "one_vs_all");
-        cout << "Model fitted-----------------.ONEVALLLLLLLL-----------------------\n" << endl;
+            // metrics on the datasets of task 4
+            cout << "\nEvaluating the model on the datasets of task 4" << endl;
 
-        // metrics on the training set
-        classifier2.show_confusion_matrix(X_train2, y_train2);
-        cout << "Accuracy on training set: " << classifier2.accuracy(X_train2, y_train2) << endl;
-        cout << "Precision on training set: " << classifier2.precision(X_train2, y_train2) << endl;
-        cout << "Recall on training set: " << classifier2.recall(X_train2, y_train2) << endl;
-        cout << "F1 score on training set: " << classifier2.f1_score(X_train2, y_train2) << endl;
+            // metrics on the test set BTC
+            cout << "\nEvaluating the model on the test set BTC " << endl;
+            Dataset X_test_BTC("data/representation.e.conll.csv");
+            Dataset y_test_BTC("data/true_labels.e.conll.csv", false, true);
 
-        // metrics on the test set a
-        cout << "\nEvaluating the model on the test set------------- BTC--------- a..." << endl;
-        Dataset X_test_a2("data/representation.e.conll.csv");
-        Dataset y_test_a2("data/true_labels.e.conll.csv", false, true);
+            classifier.show_confusion_matrix(X_test_BTC, y_test_BTC);
+            cout << "Accuracy on test set BTC: " << classifier.accuracy(X_test_BTC, y_test_BTC) << endl;
+            cout << "Precision on test set BTC: " << classifier.precision(X_test_BTC, y_test_BTC) << endl;
+            cout << "Recall on test set BTC: " << classifier.recall(X_test_BTC, y_test_BTC) << endl;
+            cout << "F1 score on test set BTC: " << classifier.f1_score(X_test_BTC, y_test_BTC) << endl;
 
-        classifier2.show_confusion_matrix(X_test_a2, y_test_a2);
-        cout << "Accuracy on test set a: " << classifier2.accuracy(X_test_a2, y_test_a2) << endl;
-        cout << "Precision on test set a: " << classifier2.precision(X_test_a2, y_test_a2) << endl;
-        cout << "Recall on test set a: " << classifier2.recall(X_test_a2, y_test_a2) << endl;
-        cout << "F1 score on test set a: " << classifier2.f1_score(X_test_a2, y_test_a2) << endl;
+            // metrics on the test set WIKIGOLD
+            cout << "\nEvaluating the model on the test set WIKIGOLD " << endl;
+            Dataset X_test_WIKIGOLD("data/representation.wikigold.conll.txt.csv");
+            Dataset y_test_WIKIGOLD("data/true_labels.wikigold.conll.txt.csv", false, true);
 
-        // metrics on the test set a
-        cout << "\nEvaluating the model on the test set -----------WIKIGOLD-------- a..." << endl;
-        Dataset X_test_b2("data/representation.wikigold.conll.txt.csv");
-        Dataset y_test_b2("data/true_labels.wikigold.conll.txt.csv", false, true);
+            classifier.show_confusion_matrix(X_test_WIKIGOLD, y_test_WIKIGOLD);
+            cout << "Accuracy on test set WIKIGOLD: " << classifier.accuracy(X_test_WIKIGOLD, y_test_WIKIGOLD) << endl;
+            cout << "Precision on test set WIKIGOLD: " << classifier.precision(X_test_WIKIGOLD, y_test_WIKIGOLD) << endl;
+            cout << "Recall on test set WIKIGOLD: " << classifier.recall(X_test_WIKIGOLD, y_test_WIKIGOLD) << endl;
+            cout << "F1 score on test set WIKIGOLD: " << classifier.f1_score(X_test_WIKIGOLD, y_test_WIKIGOLD) << endl;
+        }
 
-        classifier2.show_confusion_matrix(X_test_b2, y_test_b2);
-        cout << "Accuracy on test set a: " << classifier2.accuracy(X_test_b2, y_test_b2) << endl;
-        cout << "Precision on test set a: " << classifier2.precision(X_test_b2, y_test_b2) << endl;
-        cout << "Recall on test set a: " << classifier2.recall(X_test_b2, y_test_b2) << endl;
-        cout << "F1 score on test set a: " << classifier2.f1_score(X_test_b2, y_test_b2) << endl;
     } else {
         cout << "Invalid input !" << endl;
     }
