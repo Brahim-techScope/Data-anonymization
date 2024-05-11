@@ -21,7 +21,7 @@ int main() {
         
         // Parameters for logistic regression
         double lr = 0.001;
-        long m_epochs = 600;
+        long m_epochs = 500;
 
         // Create an instance of LogisticRegression and fit the model.
         cout << "\nFitting the model..." << endl;
@@ -29,6 +29,8 @@ int main() {
         cout << "Model fitted.\n" << endl;
 
         // metrics on the training set
+        cout << "Confusion matrix on the training set:" << endl;
+        logReg.show_confusion_matrix(X_train, y_train);
         cout << "Accuracy on training set: " << logReg.accuracy(X_train, y_train) << endl;
         cout << "Precision on training set: " << logReg.precision(X_train, y_train) << endl;
         cout << "Recall on training set: " << logReg.recall(X_train, y_train) << endl;
@@ -38,7 +40,9 @@ int main() {
         Dataset X_test_a("data/representation.eng.testa.csv");
         Dataset y_test_a("data/true_labels.eng.testa.csv", true);
         cout << "\nEvaluating the model on the test set a..." << endl;
-
+        
+        cout << "Confusion matrix on the test set a:" << endl;
+        logReg.show_confusion_matrix(X_test_a, y_test_a);
         cout << "Accuracy on test set a: " << logReg.accuracy(X_test_a, y_test_a) << endl;
         cout << "Precision on test set a: " << logReg.precision(X_test_a, y_test_a) << endl;
         cout << "Recall on test set a: " << logReg.recall(X_test_a, y_test_a) << endl;
@@ -49,6 +53,8 @@ int main() {
         Dataset y_test_b("data/true_labels.eng.testb.csv", true);
         cout << "\nEvaluating the model on the test set b..." << endl;
 
+        cout << "Confusion matrix on the test set b:" << endl;
+        logReg.show_confusion_matrix(X_test_b, y_test_b);
         cout << "Accuracy on test set b: " << logReg.accuracy(X_test_b, y_test_b) << endl;
         cout << "Precision on test set b: " << logReg.precision(X_test_b, y_test_b) << endl;
         cout << "Recall on test set b: " << logReg.recall(X_test_b, y_test_b) << endl;

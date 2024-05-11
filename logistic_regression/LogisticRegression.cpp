@@ -124,6 +124,14 @@ void LogisticRegression::confusion_matrix(const Dataset &X_test, const Dataset &
     }
 }
 
+void LogisticRegression::show_confusion_matrix(const Dataset &X_test, const Dataset &y_test) const
+{
+    Eigen::MatrixXd con_matrix;
+    confusion_matrix(X_test, y_test, con_matrix);
+    cout << "Confusion matrix: " << endl;
+    cout << con_matrix << endl;
+}
+
 double LogisticRegression::accuracy(const Dataset &X_test, const Dataset &y_test) const
 {
     Eigen::MatrixXd con_matrix;
